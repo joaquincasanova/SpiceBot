@@ -9,6 +9,19 @@ import os
 import smbus
 import logging
 import Adafruit_GPIO.I2C as I2C
+import curses
+
+# get the curses screen window
+screen = curses.initscr()
+
+# turn off input echoing
+curses.noecho()
+
+# respond to keys immediately (don't wait for enter)
+curses.cbreak()
+
+# map arrow keys to special values
+screen.keypad(True)
 # registers
 TMP007_VOBJ             = 0x00
 TMP007_TDIE             = 0x01
@@ -103,9 +116,6 @@ class Bot:
 
 		# create a default object, no changes to I2C address or frequency
 		mh = Adafruit_MotorHAT(addr=0x60)
-		self.addr = 0x5a
-		self.x = 0x07
-		self.i2c = smbus.SMBus(1)
 
 		self.LFMotor = mh.getMotor(1)
 		self.LRMotor = mh.getMotor(2)
@@ -118,13 +128,13 @@ class Bot:
 		self.RRMotor.run(Adafruit_MotorHAT.RELEASE);
 		self.LRMotor.run(Adafruit_MotorHAT.RELEASE);
 
-		self.Camera = picamera.PiCamera()
-		self.Camera.vflip=True
-		self.Camera.hflip=True
-		self.Camera.resolution = (self.ResX, self.ResY)
-		self.Camera.framerate = 30
+		#self.Camera = picamera.PiCamera()
+		#self.Camera.vflip=True
+		#self.Camera.hflip=True
+		#self.Camera.resolution = (self.ResX, self.ResY)
+		#self.Camera.framerate = 30
 		# Wait for the automatic gain control to settle
-		time.sleep(2)
+		#time.sleep(2)
 		# Now fix the values
 		#self.Camera.shutter_speed = self.Camera.exposure_speed
 		#self.Camera.exposure_mode = 'off'
@@ -234,7 +244,16 @@ class Bot:
 			self.StateToSpeed()
 			self.Idle(Duration)
 			self.TurnOffMotors()
-
+	def Drone(self):
+		print "Drone!"
+		while True:
+			char=screen.getch()
+			if char==113: break
+			elif char== curses.KEY_RIGHT : self.Right(.1, 180)
+			elif char== curses.KEY_LEFT : self.Left(.1, 180)
+			elif char== curses.KEY_UP : self.Forward(.1, 180)
+			elif char== curses.KEY_DOWN : self.Backward(.1, 180)
+			else : pass
 	def RandomMove(self):
                 Direction = np.random.randint(0,4)
                 Duration = np.random.rand()
@@ -329,6 +348,6 @@ class Bot:
 SpiceBot=Bot()
 
 try:
-	SpiceBot.RandomWalk()
+	SpiceBot.Drone()
 except KeyboardInterrupt:
 	SpiceBot.TurnOffMotors()
